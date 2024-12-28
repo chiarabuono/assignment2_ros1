@@ -1,10 +1,8 @@
 # Goal definition
-int32 x
-int32 y
+geometry_msgs/PoseStamped target_pose
 ---
 # Result definition
 bool reached
 ---
 # Feedback definition
-float32 current_x
-float32 current_y
+geometry_msgs/Pose actual_pose
