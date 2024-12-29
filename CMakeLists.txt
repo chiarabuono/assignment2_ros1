@@ -54,15 +54,16 @@ add_message_files(
   FILES
   RobotInfo.msg
   # Message1.msg
-  #Message2.msg
+  # Message2.msg
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  LastTarget.srv
+  # Service1.srv
+  # Service2.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(

@@ -6,5 +6,5 @@
 
     <!-- Launch node inside assignment2_ros1 -->
     <node pkg="assignment2_ros1" type="action_client_node.py" name="action_client_node" output="screen"/>
-    <!--  <node pkg="assignment2_ros1" type="service_client_node" name="service_client_node" /> -->
+    <node pkg="assignment2_ros1" type="service_node.py" name="service_client_node" output="screen" />
 </launch>
