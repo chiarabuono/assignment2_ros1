@@ -1,12 +1,16 @@
 #! /usr/bin/env python
 
-import actionlib.msg
 import rospy 
+import actionlib.msg
 import actionlib 
 import sys
 
-import assignment_2_2024.msg
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
+
+import assignment_2_2024.msg
+from assignment2_ros1.msg import RobotInfo
+
 
 latest_feedback = None
 def feedback_callback(feedback):
@@ -29,6 +33,8 @@ def send_goal(client, target_x, target_y):
 def asking_questions(client):
     user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback or 'e' to exit: ")
     
+    # if goal is reached exit the loop
+
     # or to cancel it. 
     if user_input.lower() == "q":
         rospy.loginfo("Cancelling goal")
@@ -59,6 +65,15 @@ def set_coordinate(string):
             print("Invalid input. Please enter a valid number.")
     return coordinate
 
+# The node also publishes the robot position and velocity as a custom message (x,y, vel_x, vel_z), by relying on the values published on the topic /odom
+def publish_robot_info(msg):
+    robot_info = RobotInfo()
+    robot_info.x = msg.pose.pose.position.x
+    robot_info.y = msg.pose.pose.position.y
+    robot_info.vel_x = msg.twist.twist.linear.x
+    robot_info.vel_z = msg.twist.twist.angular.z
+
+    status_pub.publish(robot_info)
 
 if __name__ == '__main__':
     try:
@@ -66,7 +81,11 @@ if __name__ == '__main__':
         rospy.init_node("action_client_node")
         rospy.sleep(2)
 
+        status_pub = rospy.Publisher("/robot_status", RobotInfo, queue_size=10)
+        rospy.Subscriber("/odom", Odometry, publish_robot_info)
+
         while not rospy.is_shutdown():
+
             # A node that implements an action client, allowing the user to set a target (x, y) 
             target_x = set_coordinate("Enter the target X coordinate: ")
             target_y = set_coordinate("Enter the target Y coordinate: ")
@@ -77,7 +96,7 @@ if __name__ == '__main__':
             client.wait_for_server()
             send_goal(client, target_x, target_y)
 
-            while client.get_state() != actionlib.GoalStatus.SUCCEEDED and client.get_state() != actionlib.GoalStatus.ABORTED and client.get_state() != actionlib.GoalStatus.PREEMPTED:
+            while client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
                 answer = asking_questions(client)
                 rospy.sleep(1)
             if answer == "exit":
@@ -85,8 +104,6 @@ if __name__ == '__main__':
 
             rospy.sleep(0.5)    
  
-
-            # The node also publishes the robot position and velocity as a custom message (x,y, vel_x, vel_z), by relying on the values published on the topic /odom
         rospy.loginfo("Exit success")
 
     except rospy.ROSInterruptException:
