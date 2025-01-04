@@ -18,27 +18,27 @@ def feedback_callback(feedback):
     latest_feedback = feedback
 
 # Creates a goal to send to the action server.
-def send_goal(client, target_x, target_y):
+def sending_goal(client, target_x, target_y):
 
     goal = assignment_2_2024.msg.PlanningGoal()   
     goal.target_pose = PoseStamped()
     goal.target_pose.pose.position.x = target_x
     goal.target_pose.pose.position.y = target_y
-    rospy.loginfo("Goal set")
 
     client.send_goal(goal, feedback_cb = feedback_callback)
-    rospy.loginfo("Goal sent")
+    rospy.loginfo("Goal set and sent")
 
 
 def asking_questions(client):
     user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback or 'e' to exit: ")
-    
-    # if goal is reached exit the loop
 
     # or to cancel it. 
-    if user_input.lower() == "q":
+    if user_input.lower() == "q" and client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
+        # and goal not reached
         rospy.loginfo("Cancelling goal")
         client.cancel_goal()
+    elif user_input.lower() == "q":
+        rospy.loginfo("Goal already reached")
 
     # Try to use the feedback/status of the action server to know when the target has been reached. 
     elif user_input.lower() == "f":
@@ -49,8 +49,10 @@ def asking_questions(client):
             rospy.loginfo("Feedback received: %s", latest_feedback)
     
     elif user_input.lower() == "e":
-        rospy.loginfo("Cancelling goal and exting")
-        client.cancel_goal()
+        if client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
+            rospy.loginfo("Cancelling goal and exiting")
+            client.cancel_goal()
+        else: rospy.loginfo("Exiting")
         return "exit"
     
     else:
@@ -58,8 +60,10 @@ def asking_questions(client):
 
 def set_coordinate(string): 
     while True:
+        coordinate = input(string)
+        if coordinate == "e": return "exit"
         try:
-            coordinate = int(input(string))
+            coordinate = float(coordinate)
             break
         except ValueError:
             print("Invalid input. Please enter a valid number.")
@@ -77,39 +81,37 @@ def publish_robot_info(msg):
 
 if __name__ == '__main__':
     try:
-        # Initializes a rospy node so that the SimpleActionClient can publish and subscribe over ROS.
+        # Initializes a rospy node
         rospy.init_node("action_client_node")
         rospy.sleep(2)
 
         status_pub = rospy.Publisher("/robot_status", RobotInfo, queue_size=10)
         rospy.Subscriber("/odom", Odometry, publish_robot_info)
 
+        rate = rospy.Rate(10)
+
         while not rospy.is_shutdown():
 
             # A node that implements an action client, allowing the user to set a target (x, y) 
             target_x = set_coordinate("Enter the target X coordinate: ")
+            if target_x == "exit": break
+            
             target_y = set_coordinate("Enter the target Y coordinate: ")
-            rospy.loginfo("Target chosen: (%f, %f)", target_x, target_y)
+            if target_y == "exit": break
 
             
             client = actionlib.SimpleActionClient('reaching_goal', assignment_2_2024.msg.PlanningAction)
             client.wait_for_server()
-            send_goal(client, target_x, target_y)
+            sending_goal(client, target_x, target_y)
 
             while client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
                 answer = asking_questions(client)
-                rospy.sleep(1)
+                rate.sleep()
             if answer == "exit":
                 break
 
-            rospy.sleep(0.5)    
- 
         rospy.loginfo("Exit success")
 
     except rospy.ROSInterruptException:
         print("Action client interrupted", file=sys.stderr)
-
-
-
-
 
