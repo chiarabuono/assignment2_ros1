@@ -31,7 +31,7 @@ This launch file will start:
 - The action client node;
 - The launch file in the assignment2_2024 repository that will start the gazebo simulation and these nodes: wall_follower, go_to_point and bug_action_service.
 
-# Node description
+# Nodes description
 ## Action node
 This node allows the user to set a target's coordinates (x, y). If the values are invalid, the user will be prompted to reselect. Once valid coordinates are provided, the robot will move towards the target with a velocity established by the action server. The robot will stop when it reaches the target.
 During the robot's motion, the user can interact with the following options:

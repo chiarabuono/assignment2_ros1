@@ -33,12 +33,15 @@ def asking_questions(client):
     user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback or 'e' to exit: ")
 
     # or to cancel it. 
-    if user_input.lower() == "q" and client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
+    if user_input.lower() == "q":
         # and goal not reached
-        rospy.loginfo("Cancelling goal")
-        client.cancel_goal()
-    elif user_input.lower() == "q":
-        rospy.loginfo("Goal already reached")
+        if client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
+            rospy.loginfo("Cancelling goal")
+            client.cancel_goal()
+        else:
+            rospy.loginfo("Goal already reached")
+        return "targetcancelled"
+        
 
     # Try to use the feedback/status of the action server to know when the target has been reached. 
     elif user_input.lower() == "f":
@@ -83,7 +86,6 @@ if __name__ == '__main__':
     try:
         # Initializes a rospy node
         rospy.init_node("action_client_node")
-        rospy.sleep(2)
 
         status_pub = rospy.Publisher("/robot_status", RobotInfo, queue_size=10)
         rospy.Subscriber("/odom", Odometry, publish_robot_info)
@@ -93,6 +95,7 @@ if __name__ == '__main__':
         while not rospy.is_shutdown():
 
             # A node that implements an action client, allowing the user to set a target (x, y) 
+            print("Enter 'e' at any moment to exit")
             target_x = set_coordinate("Enter the target X coordinate: ")
             if target_x == "exit": break
             
@@ -107,8 +110,11 @@ if __name__ == '__main__':
             while client.get_state() not in [actionlib.GoalStatus.SUCCEEDED, actionlib.GoalStatus.ABORTED, actionlib.GoalStatus.PREEMPTED]:
                 answer = asking_questions(client)
                 rate.sleep()
+                if answer == "exit" or answer == "targetcancelled":
+                    break
             if answer == "exit":
                 break
+            rate.sleep()              # To allow having the question as last in the terminal
 
         rospy.loginfo("Exit success")
 
