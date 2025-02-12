@@ -7,10 +7,13 @@ import sys
 
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
 
 import assignment_2_2024.msg
-from assignment2_ros1.msg import RobotInfo
+from assignment2_ros1.msg import RobotInfo, PlanningActionFeedback
 
+Robot = {"prev_x": 0, "prev_y" : 0, "x": 0, "y": 0}
+PERIOD = 10
 
 latest_feedback = None
 def feedback_callback(feedback):
@@ -30,7 +33,7 @@ def sending_goal(client, target_x, target_y):
 
 
 def asking_questions(client):
-    user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback or 'e' to exit: ")
+    user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback, 'v' to know the average velocity or 'e' to exit: ")
 
     # or to cancel it. 
     if user_input.lower() == "q":
@@ -58,6 +61,7 @@ def asking_questions(client):
         else: rospy.loginfo("Exiting")
         return "exit"
     
+     
     else:
         rospy.loginfo("Input not valid")
 
@@ -82,6 +86,36 @@ def publish_robot_info(msg):
 
     status_pub.publish(robot_info)
 
+def reach_feedback(msg):
+    if (msg.feedback.stat == ""):
+        rospy.loginfo("Reached")
+
+
+def publish_warning():
+    global regions_
+    
+    if (regions_["fleft"] < 1): warning_pub.publish(True)
+    elif (regions_["fright"] < 1): warning_pub.publish(True)
+    elif (regions_["front"] < 1): warning_pub.publish(True)
+    elif (regions_["left"] < 1): warning_pub.publish(True)
+    elif (regions_["right"] < 1): warning_pub.publish(True)
+    else: warning_pub.publish(False)
+
+def clbk_laser(msg):
+    global regions_
+    regions_ = {
+        'right':  min(min(msg.ranges[0:143]), 10),
+        'fright': min(min(msg.ranges[144:287]), 10),
+        'front':  min(min(msg.ranges[288:431]), 10),
+        'fleft':  min(min(msg.ranges[432:575]), 10),
+        'left':   min(min(msg.ranges[576:719]), 10),
+    }
+
+    publish_warning()
+
+
+
+
 if __name__ == '__main__':
     try:
         # Initializes a rospy node
@@ -90,7 +124,12 @@ if __name__ == '__main__':
         status_pub = rospy.Publisher("/robot_status", RobotInfo, queue_size=10)
         rospy.Subscriber("/odom", Odometry, publish_robot_info)
 
-        rate = rospy.Rate(10)
+        rospy.Subscriber("/reaching_goal/feedback", PlanningActionFeedback, reach_feedback)
+        warning_pub = rospy.Publisher("/warning", bool, queue_size=10)
+        sub_laser = rospy.Subscriber('/scan', LaserScan, clbk_laser)
+        
+
+        rate = rospy.Rate(PERIOD)
 
         while not rospy.is_shutdown():
 
