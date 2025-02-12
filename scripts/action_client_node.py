@@ -10,7 +10,8 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 
 import assignment_2_2024.msg
-from assignment2_ros1.msg import RobotInfo, PlanningActionFeedback
+import assignment_2_2024.msg import PlanningActionFeedback
+from assignment2_ros1.msg import RobotInfo
 
 Robot = {"prev_x": 0, "prev_y" : 0, "x": 0, "y": 0}
 PERIOD = 10
@@ -87,7 +88,7 @@ def publish_robot_info(msg):
     status_pub.publish(robot_info)
 
 def reach_feedback(msg):
-    if (msg.feedback.stat == ""):
+    if (msg.feedback.stat == "Target reached"):
         rospy.loginfo("Reached")
 
 
