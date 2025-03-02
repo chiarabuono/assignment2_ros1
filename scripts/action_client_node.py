@@ -1,4 +1,16 @@
 #! /usr/bin/env python
+"""
+This node implements an action client that allows the user to set a target (x, y) or to cancel it. It interact with the user allowing to
+cancel the goal, receive feedback or close the node. It also publishes the robot position and velocity as a custom message (x,y, vel_x, vel_z), 
+by relying on the values published on the topic /odom.
+
+.. module:: action_client_node
+   :platform: Unix
+   :synopsis: Action client node for setting and canceling a target (x, y).
+
+.. moduleauthor:: Chiara Buono <s7687956@studenti.unige.it>
+"""
+
 
 import rospy 
 import actionlib.msg
@@ -14,11 +26,26 @@ from assignment2_ros1.msg import RobotInfo
 
 latest_feedback = None
 def feedback_callback(feedback):
+    """
+    Function to handle feedback from the action server.
+
+    :param feedback: The feedback message received from the action server.
+    :type feedback: PlanningFeedback
+    """
     global latest_feedback
     latest_feedback = feedback
 
-# Creates a goal to send to the action server.
 def sending_goal(client, target_x, target_y):
+    """
+    Function to send a goal to the action server.
+
+    :param client: The action client.
+    :type client: ActionClient
+    :param target_x: The x coordinate of the target.
+    :type target_x: float
+    :param target_y: The y coordinate of the target.
+    :type target_y: float
+    """
 
     goal = assignment_2_2024.msg.PlanningGoal()   
     goal.target_pose = PoseStamped()
@@ -30,6 +57,15 @@ def sending_goal(client, target_x, target_y):
 
 
 def asking_questions(client):
+    """
+    Function to handle the interaction with the user. It will allow the user to cancel the goal, receive feedback or close the node safely.
+
+    :param client: The action client.
+    :type client: ActionClient
+
+    :returns: A string based on the choise of the user
+    :rtype: string 
+    """
     user_input = input("Press 'q' to cancel the goal, 'f' to receive feedback or 'e' to exit: ")
 
     # or to cancel it. 
@@ -62,6 +98,15 @@ def asking_questions(client):
         rospy.loginfo("Input not valid")
 
 def set_coordinate(string): 
+    """
+    Function to convert the user input from string to float. It also handle the 'exit' case
+
+    :param string: The user input
+    :type string: string
+
+    :returns: coordinate
+    :rtype: float
+    """
     while True:
         coordinate = input(string)
         if coordinate == "e": return "exit"
@@ -72,8 +117,14 @@ def set_coordinate(string):
             print("Invalid input. Please enter a valid number.")
     return coordinate
 
-# The node also publishes the robot position and velocity as a custom message (x,y, vel_x, vel_z), by relying on the values published on the topic /odom
 def publish_robot_info(msg):
+    """
+    Function that publishes the robot position and velocity as a custom message (x, y, vel_x, vel_z) by relying on the values published on the topic /odom
+
+    :param msg: The message to be published
+    :type msg: geometry_msgs.msg.TwistStamped
+
+    """
     robot_info = RobotInfo()
     robot_info.x = msg.pose.pose.position.x
     robot_info.y = msg.pose.pose.position.y

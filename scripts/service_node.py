@@ -1,11 +1,26 @@
 #! /usr/bin/env python
-# A service node that, when called, returns the coordinates of the last target sent by the user;
+"""
+This node is a service node that returns the coordinates of the last target sent by the user on the topic '/last_target_service'.
+
+.. module:: service_node
+   :platform: Unix
+   :synopsis: Service node that retrieves the last target coordinates.
+
+.. moduleauthor:: Chiara Buono <s7687956@studenti.unige.it>
+"""
+
 import rospy 
 import sys
 
 from assignment2_ros1.srv import LastTarget, LastTargetResponse
 
-def retrieve_last_target(req):
+def retrieve_last_target():
+    """
+    Function that retrieves the last target coordinates from the ROS parameter server.
+
+    :returns : The last target coordinates.
+    :rtype: LastTargetResponse
+    """
     last_x = float(rospy.get_param("/des_pos_x"))
     last_y = float(rospy.get_param("/des_pos_y"))
     
