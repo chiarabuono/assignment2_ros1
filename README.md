@@ -3,6 +3,8 @@ This repository contains two ROS1 nodes that interact with the Gazebo environmen
 1. Action Node: Allows the user to set a target position (x, y), cancel it, or receive feedback about the robot's pose.
 2. Service Node: Returns the coordinates of the last target sent by the user when called.
 
+Additional documentation at https://chiarabuono.github.io/assignment2_ros1/
+
 # Requirements
 Before using the package, make sure you have ROS (any compatible version) installed. Additionally, you must have a working catkin workspace to compile and run the package. If you do not already have a workspace, follow these steps to create a new one:
 ```
