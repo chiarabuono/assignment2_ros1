@@ -18,8 +18,8 @@ def retrieve_last_target():
     """
     Function that retrieves the last target coordinates from the ROS parameter server.
 
-    :returns : The last target coordinates.
-    :rtype: LastTargetResponse
+    :returns: The last target coordinates.
+    :rtype: LastTargetResponse 
     """
     last_x = float(rospy.get_param("/des_pos_x"))
     last_y = float(rospy.get_param("/des_pos_y"))

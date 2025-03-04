@@ -88,8 +88,8 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that retrieves the last target coordinates from the ROS parameter server.</span>
 
-<span class="sd">    :returns : The last target coordinates.</span>
-<span class="sd">    :rtype: LastTargetResponse</span>
+<span class="sd">    :returns: The last target coordinates.</span>
+<span class="sd">    :rtype: LastTargetResponse </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">last_x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rospy</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="s2">&quot;/des_pos_x&quot;</span><span class="p">))</span>
     <span class="n">last_y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rospy</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="s2">&quot;/des_pos_y&quot;</span><span class="p">))</span>
